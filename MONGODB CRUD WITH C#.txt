@@ -1,4 +1,17 @@
+// CONTEXT
+private readonly IMongoDatabase _db;
 
+public MongoDbContext(IMongoClient client, string dbName)
+{
+    _db = client.GetDatabase(dbName);
+}
+
+public IMongoCollection<Channel> ChannelEntityies => _db.GetCollection<Channel>("Channels");
+public IMongoCollection<BsonDocument> ChannelBsonDocs => _db.GetCollection<BsonDocument>("Channels");
+
+// DEPENDENCY 
+services.AddSingleton<IMongoClient>(s => new MongoClient(Configuration.GetSection("MongoConnection:ConnectionString").Value));
+services.AddScoped(s => new MongoDbContext(s.GetRequiredService<IMongoClient>(), Configuration.GetSection("MongoConnection:Database").Value));
 
 // MONGODB CRUD WITH C#
 
