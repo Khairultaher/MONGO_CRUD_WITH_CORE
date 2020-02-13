@@ -1,0 +1,56 @@
+
+
+// MONGODB CRUD WITH C#
+
+# Add child document to nested parrent array *Push Entity*
+	IMongoCollection<Profile> _usersProfile = _db.GetCollection<Profile>("Profiles");
+
+	var filter = Builders<Profile>.Filter
+				   .And(Builders<Profile>.Filter.Where(x => x.UserId == userid));
+	var update = Builders<Profile>.Update.Push("PlayList", play);
+	try
+	{
+		
+		_usersProfile.FindOneAndUpdateAsync(filter, update);
+	}
+	catch (Exception ex )
+	{
+
+		throw ex;
+	}
+# Add Second levelchild document to nested parrent array *Push Entity*	
+var collection = _db.ChannelEntityies;
+//var filter = Builders<User>.Filter.Eq(e => e.name, "FullName") & Builders<User>.Filter.ElemMatch(e => e.cellars, Builders<Cellar>.Filter.Eq(e => e.cellarId, "mycellar"));
+//var update = Builders<User>.Update.Push(e => e.cellars[-1].beersInCellar, specificBeer);
+var filter = Builders<Channel>.Filter.And(Builders<Channel>
+							  .Filter.Where(x => x.Id == trackViewModel.ChannelId ), // OR &
+			 Builders<Channel>.Filter.ElemMatch(e => e.Episodes, Builders<Episode>
+							  .Filter.Eq(e => e.Id, trackViewModel.ParentId)));
+
+trackViewModel.Track.Id = ObjectId.GenerateNewId().ToString();
+var update = Builders<Channel>.Update.Push(p=>p.Episodes[-1].Tracks, trackViewModel.Track);
+try
+{
+	var data = collection.FindOneAndUpdate(filter, update);
+}
+catch (Exception ex)
+{
+	throw ex;
+            }
+# Add child document to nested parrent array *Push BsonDocument*
+	var collection = _db.GetCollection<BsonDocument>("Profiles");
+	var filter = new BsonDocument("UserId", "3f46af13-e122-420f-b5b9-45cc6f60e30c");
+	var parent = collection.Find(filter).Limit(1).Single();
+
+	//parent["Playes"] = new BsonArray().Add(BsonValue.Create(track));
+	parent["PlayeList"] = parent["PlayeList"].AsBsonArray.Add(track);
+	collection.UpdateOne(filter, parent);
+	
+# Delete child document to nested parrent array *Pule*
+	IMongoCollection<Profile> _usersProfile = _db.GetCollection<Profile>("Profiles");
+
+	var filter = Builders<Profile>.Filter
+		.And(Builders<Profile>.Filter.Where(x => x.UserId == userid));
+	var update = Builders<Profile>
+				.Update.PullFilter(x => x.PlayList, material => material.TrackId == trackid);
+	_usersProfile.UpdateOne(filter, update);
